@@ -1,4 +1,4 @@
 Check when popular .io domains were registered. ::
 
     pip install io-whois
-    io-whois | sort -t, -k2
+    io-whois | sort --field-separator=, --key=2 --human-numeric-sort
