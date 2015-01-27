@@ -62,6 +62,7 @@ def domain_registrations(most_popular = _most_popular, get = get, parse = parse)
 def main():
     import sys
     writer = csv.DictWriter(sys.stdout, ('domain-name', 'first-registered'))
+    writer.writeheader()
     for row in domain_registrations():
         writer.writerow(row)
 
