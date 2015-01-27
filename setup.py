@@ -8,6 +8,6 @@ setup(name='io-whois',
       install_requires = ['vlermv','requests','lxml'],
       py_modules=['whois'],
       entry_points={'console_scripts': ['io-whois = whois:main']},
-      version='0.0.1',
+      version='0.0.2',
       license='AGPL',
 )
