@@ -30,7 +30,8 @@ def parse(response):
     'Parse a whois response.'
     html = lxml.html.fromstring(response.text)
     query = partial(_query_html, html)
-    if query('Domain Status:', raise_error = False) != 'pendingDelete / Owner Delete Requested':
+    status = query('Domain Status:', raise_error = False)
+    if status == None: # or 'pendingDelete' not in status
         date = datetime.datetime.strptime(query('First Registered :'), '%Y-%m-%d').date()
         return {
             'domain-name': query('Domain Name :'),
