@@ -28,10 +28,9 @@ def _query_html(html, key, raise_error = True):
 
 def parse(response):
     'Parse a whois response.'
-    html = lxml.html.fromstring(response.text)
-    query = partial(_query_html, html)
-    status = query('Domain Status:', raise_error = False)
-    if status == None: # or 'pendingDelete' not in status
+    if 'The results are shown below.' in response.text:
+        html = lxml.html.fromstring(response.text)
+        query = partial(_query_html, html)
         date = datetime.datetime.strptime(query('First Registered :'), '%Y-%m-%d').date()
         return {
             'domain-name': query('Domain Name :'),
@@ -57,7 +56,7 @@ def domain_registrations(most_popular = _most_popular, get = get, parse = parse)
             e.args = ('%s (%s)' % (e.args[0], domain),) + e.args[1:]
             raise e
 
-        if domain == 'nic.io' or data != None:
+        if data != None:
             yield data
 
 def main():
