@@ -20,7 +20,11 @@ def get(domain):
 
 def _query_html(html, key):
     'Query the body of a WHOIS record.'
-    return str(html.xpath('//td[text() = "%s"]/following-sibling::td/text()' % key)[0])
+    nodes = html.xpath('//td[text() = "%s"]/following-sibling::td' % key)
+    if len(nodes) == 1:
+        return str(nodes[0].text_content())
+    else:
+        raise KeyError(key)
 
 def parse(response):
     'Parse a whois response.'
@@ -36,7 +40,8 @@ def most_popular():
     'List the most popular .io domains, based on someone\'s idea of popularity.'
     response = get_other('http://hack.ly/articles/the-most-popular-dot-io-domains/')
     html = lxml.html.fromstring(response.text)
-    return map(str, html.xpath('//div[@class="entry-content"]/descendant::a/text()'))
+    domains_and_more = html.xpath('//div[@class="entry-content"]/descendant::a/text()')
+    return map(str, filter(lambda x: '.' in x, domains_and_more))
 
 def main():
     import sys
