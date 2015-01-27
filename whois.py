@@ -18,21 +18,20 @@ def get(domain):
     'Get a WHOIS record.'
     return requests.get(url, params = {'query': domain})
 
-def _query_html(html, key):
+def _query_html(html, key, raise_error = True):
     'Query the body of a WHOIS record.'
     nodes = html.xpath('//td[text() = "%s"]/following-sibling::td' % key)
     if len(nodes) == 1:
         return str(nodes[0].text_content())
-    else:
+    elif raise_error:
         raise KeyError('"%s"' % key)
 
 def parse(response):
     'Parse a whois response.'
     html = lxml.html.fromstring(response.text)
     query = partial(_query_html, html)
-    date = datetime.datetime.strptime(query('First Registered :'), '%Y-%m-%d').date()
-    print(query('Domain Status :'))
-    if query('Domain Status :') == 'Live':
+    if query('Domain Status:', raise_error = False) != 'pendingDelete / Owner Delete Requested':
+        date = datetime.datetime.strptime(query('First Registered :'), '%Y-%m-%d').date()
         return {
             'domain-name': query('Domain Name :'),
             'first-registered': date,
