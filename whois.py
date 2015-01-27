@@ -42,7 +42,7 @@ def _most_popular():
     response = get_other('http://hack.ly/articles/the-most-popular-dot-io-domains/')
     html = lxml.html.fromstring(response.text)
     domains_and_more = html.xpath('//div[@class="entry-content"]/descendant::a/text()')
-    return map(str, filter(lambda x: '.' in x, domains_and_more))
+    return sorted(set(map(str, filter(lambda x: '.' in x, domains_and_more))))
 
 def domain_registrations(most_popular = _most_popular, get = get, parse = parse):
     for domain in most_popular():
@@ -56,7 +56,7 @@ def domain_registrations(most_popular = _most_popular, get = get, parse = parse)
             e.args = ('%s (%s)' % (e.args[0], domain),) + e.args[1:]
             raise e
 
-        if data != None:
+        if domain == 'nic.io' or data != None:
             yield data
 
 def main():
