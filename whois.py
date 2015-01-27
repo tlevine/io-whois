@@ -24,41 +24,47 @@ def _query_html(html, key):
     if len(nodes) == 1:
         return str(nodes[0].text_content())
     else:
-        raise KeyError(key)
+        raise KeyError('"%s"' % key)
 
 def parse(response):
     'Parse a whois response.'
     html = lxml.html.fromstring(response.text)
     query = partial(_query_html, html)
     date = datetime.datetime.strptime(query('First Registered :'), '%Y-%m-%d').date()
-    return {
-        'domain-name': query('Domain Name :'),
-        'first-registered': date,
-    }
+    print(query('Domain Status :'))
+    if query('Domain Status :') == 'Live':
+        return {
+            'domain-name': query('Domain Name :'),
+            'first-registered': date,
+        }
 
-def most_popular():
+def _most_popular():
     'List the most popular .io domains, based on someone\'s idea of popularity.'
     response = get_other('http://hack.ly/articles/the-most-popular-dot-io-domains/')
     html = lxml.html.fromstring(response.text)
     domains_and_more = html.xpath('//div[@class="entry-content"]/descendant::a/text()')
     return map(str, filter(lambda x: '.' in x, domains_and_more))
 
-def main():
-    import sys
-    writer = csv.DictWriter(sys.stdout, ('domain-name', 'first-registered'))
+def domain_registrations(most_popular = _most_popular, get = get, parse = parse):
     for domain in most_popular():
         response = get(domain)
         if not response.ok:
-            sys.stderr.write('Error downloading "%s"\n' % domain)
-            sys.exit(1)
+            raise ValueError('Error downloading "%s"\n' % domain)
 
         try:
             data = parse(response)
         except Exception as e:
-            sys.stderr.write('Error parsing the "%s" record:\n%s\n' % (domain, e))
-            sys.exit(2)
+            e.args = ('%s (%s)' % (e.args[0], domain),) + e.args[1:]
+            raise e
 
-        writer.writerow(data)
+        if data != None:
+            yield data
+
+def main():
+    import sys
+    writer = csv.DictWriter(sys.stdout, ('domain-name', 'first-registered'))
+    for row in domain_registrations():
+        writer.writerow(row)
 
 if __name__ == '__main__':
     main()
